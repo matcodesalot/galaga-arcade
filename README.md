@@ -1,4 +1,4 @@
 # miniature-happiness
 
-This is my portfolio.
+This is going to be a galaga kind of game. Maybe.
 mathewjohns.com
