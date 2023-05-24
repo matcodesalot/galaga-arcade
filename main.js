@@ -1,10 +1,8 @@
-//Mathew Johns Portfolio
+const canvas = document.getElementById(`canvas`);
+const ctx = canvas.getContext(`2d`);
 
 const SCREEN_WIDTH = window.innerWidth;
 const SCREEN_HEIGHT = window.innerHeight;
-
-const canvas = document.getElementById(`canvas`);
-const ctx = canvas.getContext(`2d`);
 
 canvas.width = SCREEN_WIDTH;
 canvas.height = SCREEN_HEIGHT;
@@ -48,6 +46,45 @@ class Raindrop {
     }
 }
 
+class Player {
+    constructor() {
+        this.position = {
+            x: SCREEN_WIDTH / 2,
+            y: SCREEN_HEIGHT / 1.25
+        };
+
+        this.velocity = {
+            x: 0,
+            y: 0
+        };
+
+        const sprite = new Image();
+        sprite.src = `./assets/bb1.png`;
+
+        sprite.onload = () => {
+            this.sprite = sprite;
+            this.width = 48;
+            this.height = 48;
+        }
+    }
+
+    draw() {
+        // ctx.fillStyle = `red`;
+        // ctx.fillRect(this.position.x, this.position.y, this.width, this.height);
+
+        if(this.sprite) {
+            ctx.drawImage(this.sprite, this.position.x, this.position.y, this.width, this.height);
+        }
+    }
+
+    update() {
+        this.draw();
+        this.position.x += this.velocity.x;
+    }
+}
+
+const player = new Player();
+
 //Initialize Raindrops
 const raindrops = [];
 for (let i = 0; i < 50; i++) {
@@ -59,59 +96,17 @@ function clearScreen() {
     ctx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 }
 
-//FPS Counter
-let startTime = Date.now();
-let frameCount = 0;
-let showFPS = false;
-
-const fpsElement = document.getElementById(`fps`);
-
-function countFPS() {
-    frameCount++;
-    let currentTime = Date.now();
-    let elapsedTime = currentTime - startTime;
-
-    if(elapsedTime >= 1000) {
-        let fps = frameCount / (elapsedTime / 1000);
-
-        if(showFPS === false) {
-            //start off the fps counter not showing
-            fpsElement.style.display = "none";
-        }
-        else {
-            //if showFPS is true (f is pressed), show it.
-            fpsElement.style.display = "block";
-            fpsElement.textContent = `FPS: ${fps.toFixed(2)}`;
-        }
-        
-        startTime = currentTime;
-        frameCount = 0;
-    }
-}
-
 //Update and Render Raindrops
-function render() {
+function gameLoop() {
     clearScreen();
-    countFPS();
 
     for (let raindrop of raindrops) {
         raindrop.update();
     }
+
+    player.update();
     
-    requestAnimationFrame(render);
+    requestAnimationFrame(gameLoop);
 }
 
-render();
-
-window.addEventListener(`keydown`, (e) => {
-    switch(e.key) {
-        case `f`:
-            if(fpsElement.style.display === "none") {
-                showFPS = true;
-            }
-            else {
-                showFPS = false;
-            }
-            break;
-    }
-});
+gameLoop();
