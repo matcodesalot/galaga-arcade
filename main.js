@@ -59,7 +59,7 @@ class Player {
         };
 
         const sprite = new Image();
-        sprite.src = `/assets/bb1.png`;
+        sprite.src = `assets/bb1.png`;
 
         sprite.onload = () => {
             this.sprite = sprite;
