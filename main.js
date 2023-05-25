@@ -1,3 +1,4 @@
+//Define the canvas, getContext, and canvas dimensions
 const canvas = document.getElementById(`canvas`);
 const ctx = canvas.getContext(`2d`);
 
@@ -48,11 +49,6 @@ class Raindrop {
 
 class Player {
     constructor() {
-        this.position = {
-            x: SCREEN_WIDTH / 2,
-            y: SCREEN_HEIGHT / 1.25
-        };
-
         this.velocity = {
             x: 0,
             y: 0
@@ -62,28 +58,47 @@ class Player {
         sprite.src = `./assets/bb11.png`;
 
         sprite.onload = () => {
+            const scale = 1;
             this.sprite = sprite;
-            this.width = 48;
-            this.height = 48;
+            this.width = sprite.width * scale;
+            this.height = sprite.height * scale;
+
+            this.position = {
+                x: SCREEN_WIDTH / 2 - this.width / 2,
+                y: SCREEN_HEIGHT - this.height - 40
+            };
         }
     }
 
     draw() {
-        // ctx.fillStyle = `red`;
-        // ctx.fillRect(this.position.x, this.position.y, this.width, this.height);
-
         if(this.sprite) {
             ctx.drawImage(this.sprite, this.position.x, this.position.y, this.width, this.height);
         }
     }
 
     update() {
-        this.draw();
-        this.position.x += this.velocity.x;
+        if(this.sprite) {
+            this.draw();
+            this.position.x += this.velocity.x;
+        }
     }
 }
 
+//Initialize Player
 const player = new Player();
+
+//Key states
+const keys = {
+    left: {
+        pressed: false
+    },
+    right: {
+        pressed: false
+    },
+    shoot: {
+        pressed: false
+    }
+};
 
 //Initialize Raindrops
 const raindrops = [];
@@ -96,12 +111,22 @@ function clearScreen() {
     ctx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 }
 
-//Update and Render Raindrops
+//Update and render game
 function gameLoop() {
     clearScreen();
 
     for (let raindrop of raindrops) {
         raindrop.update();
+    }
+
+    if(keys.left.pressed && lastKey === `left` && player.position.x >= 0) {
+        player.velocity.x = -5;
+    }
+    else if (keys.right.pressed && lastKey === `right` && player.position.x + player.width <= SCREEN_WIDTH) {
+        player.velocity.x = 5;
+    }
+    else {
+        player.velocity.x = 0;
     }
 
     player.update();
@@ -110,3 +135,38 @@ function gameLoop() {
 }
 
 gameLoop();
+
+
+//Player inputs
+window.addEventListener(`keydown`, (e) => {
+    e.preventDefault();
+    switch(e.key) {
+        case `ArrowLeft`:
+            keys.left.pressed = true;
+            lastKey = `left`;
+            break;
+        case `ArrowRight`:
+            keys.right.pressed = true;
+            lastKey = `right`;
+            break;
+        case ` `:
+            keys.shoot.pressed = true;
+            lastKey = `space`;
+            break;
+    }
+});
+
+window.addEventListener(`keyup`, (e) => {
+    switch(e.key) {
+        case `ArrowLeft`:
+            keys.left.pressed = false;
+            break;
+        case `ArrowRight`:
+            keys.right.pressed = false;
+            break;
+        case ` `:
+            keys.shoot.pressed = false;
+            lastKey = `space`;
+            break;
+    }
+});
