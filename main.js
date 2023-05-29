@@ -16,7 +16,6 @@ function getRandomFloat(min, max) {
     return Math.random() * (max - min) + min;
 }
 
-//Raindrop class
 class Raindrop {
     constructor() {
         this.x = getRandomFloat(0, SCREEN_WIDTH);
@@ -39,11 +38,11 @@ class Raindrop {
     }
 
     update() {
+        this.draw();
         this.y += this.speed;
         if (this.y > SCREEN_HEIGHT * 2) {
             this.y = 0;
         }
-        this.draw();
     }
 }
 
@@ -84,8 +83,29 @@ class Player {
     }
 }
 
+class Projectile {
+    constructor({position, velocity}) {
+        this.position = position;
+        this.velocity = velocity;
+        this.width = 4;
+        this.height = 20;
+    }
+
+    draw() {
+        ctx.fillStyle = `white`;
+        ctx.fillRect(this.position.x, this.position.y, this.width, this.height);
+    }
+
+    update() {
+        this.draw();
+        this.position.x += this.velocity.x;
+        this.position.y += this.velocity.y;
+    }
+}
+
 //Initialize Player
 const player = new Player();
+const projectiles = [];
 
 //Key states
 const keys = {
@@ -118,6 +138,15 @@ function gameLoop() {
     for (let raindrop of raindrops) {
         raindrop.update();
     }
+    projectiles.forEach((projectile, i) => {
+        //Garbage collection
+        if(projectile.position.y + projectile.height <= 0) {
+            projectiles.splice(i, 1);
+        }
+        else {
+            projectile.update();
+        }
+    });
 
     if(keys.left.pressed && lastKey === `left` && player.position.x >= 0) {
         player.velocity.x = -5;
@@ -151,7 +180,17 @@ window.addEventListener(`keydown`, (e) => {
             break;
         case ` `:
             keys.shoot.pressed = true;
-            lastKey = `space`;
+            //lastKey = `space`;
+            projectiles.push(new Projectile({
+                position: {
+                    x: player.position.x + player.width / 2,
+                    y: player.position.y
+                },
+                velocity: {
+                    x: 0,
+                    y: -5
+                }
+            }));
             break;
     }
 });
@@ -166,7 +205,7 @@ window.addEventListener(`keyup`, (e) => {
             break;
         case ` `:
             keys.shoot.pressed = false;
-            lastKey = `space`;
+            //lastKey = `space`;
             break;
     }
 });
