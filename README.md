@@ -10,7 +10,7 @@
 
 ## Live Page
 
-Keep up to date with this project by visiting the live page [here](https://mathewjohns.com/)
+Keep up to date with this project by visiting the live page [here](https://matcodesalot.github.io/galaga-arcade/)
 
 ## About
 

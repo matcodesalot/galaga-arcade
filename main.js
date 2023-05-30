@@ -23,7 +23,7 @@ class Raindrop {
         this.length = getRandomFloat(10, 20);
         this.width = getRandomFloat(1, 4);
         this.speed = getRandomFloat(2, 4);
-        this.color = `rgb(${getRandomInt(0, 255)}, ${getRandomInt(0, 255)}, ${getRandomInt(0, 255)})`;
+        this.color = `rgba(${getRandomInt(0, 255)}, ${getRandomInt(0, 255)}, ${getRandomInt(0, 255)}, 0.4)`;
     }
 
     draw() {
