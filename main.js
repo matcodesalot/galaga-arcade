@@ -83,6 +83,78 @@ class Player {
     }
 }
 
+class Enemy {
+    constructor() {
+        this.velocity = {
+            x: 0,
+            y: 0
+        };
+
+        const sprite = new Image();
+        sprite.src = `./assets/invader.png`;
+
+        sprite.onload = () => {
+            const scale = 1;
+            this.sprite = sprite;
+            this.width = sprite.width * scale;
+            this.height = sprite.height * scale;
+
+            this.position = {
+                x: Math.random() * SCREEN_WIDTH,
+                y: -40
+            };
+        }
+    }
+
+    draw() {
+        if(this.sprite) {
+            ctx.drawImage(this.sprite, this.position.x, this.position.y, this.width, this.height);
+        }
+    }
+
+    update() {
+        if(this.sprite) {
+            this.draw();
+            this.position.x += this.velocity.x;
+            this.position.y += this.velocity.y;
+        }
+    }
+}
+
+class WaveManager {
+    constructor() {
+        this.currentWave = 1;
+        this.enemiesPerWave = 10;
+        this.enemySpeed = 1;
+        this.spawnDelay = 1000; // milliseconds
+        this.lastSpawnTime = 0;
+        this.enemiesSpawned = 0;
+        this.enemies = [];
+    }
+  
+    update() {
+        // Check if it's time to spawn a new enemy
+        const currentTime = Date.now();
+        if (currentTime - this.lastSpawnTime >= this.spawnDelay && this.enemiesSpawned < this.enemiesPerWave) {
+            this.spawnEnemy();
+            this.lastSpawnTime = currentTime;
+            this.enemiesSpawned++;
+        }
+    
+        // Update and draw all the enemies
+        this.enemies.forEach((enemy) => {
+            enemy.update();
+        });
+    }
+    
+    spawnEnemy() {
+        // Create a new enemy and add it to the enemies array
+        const enemy = new Enemy();
+        enemy.velocity.y = this.enemySpeed;
+        this.enemies.push(enemy);
+    }
+}
+
 class Projectile {
     constructor({position, velocity}) {
         this.position = position;
@@ -105,7 +177,9 @@ class Projectile {
 
 //Initialize Player
 const player = new Player();
+
 const projectiles = [];
+const waveManager = new WaveManager();
 
 //Key states
 const keys = {
@@ -131,6 +205,7 @@ function clearScreen() {
     ctx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 }
 
+
 //Update and render game
 function gameLoop() {
     clearScreen();
@@ -138,6 +213,7 @@ function gameLoop() {
     for (let raindrop of raindrops) {
         raindrop.update();
     }
+
     projectiles.forEach((projectile, i) => {
         //Garbage collection
         if(projectile.position.y + projectile.height <= 0) {
@@ -159,10 +235,11 @@ function gameLoop() {
     }
 
     player.update();
+
+    waveManager.update();
     
     requestAnimationFrame(gameLoop);
 }
-
 gameLoop();
 
 
