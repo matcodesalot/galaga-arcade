@@ -2,7 +2,10 @@
 const canvas = document.getElementById(`canvas`);
 const ctx = canvas.getContext(`2d`);
 
-const SCREEN_WIDTH = window.innerWidth;
+// const SCREEN_WIDTH = window.innerWidth;
+// const SCREEN_HEIGHT = window.innerHeight;
+
+const SCREEN_WIDTH = 960;
 const SCREEN_HEIGHT = window.innerHeight;
 
 canvas.width = SCREEN_WIDTH;
@@ -83,6 +86,28 @@ class Player {
     }
 }
 
+class Projectile {
+    constructor({position, velocity}) {
+        this.position = position;
+        this.velocity = velocity;
+        this.width = 4;
+        this.height = 20;
+    }
+
+    draw() {
+        ctx.fillStyle = `white`;
+        ctx.fillRect(this.position.x, this.position.y, this.width, this.height);
+    }
+
+    update() {
+        this.draw();
+        this.position.x += this.velocity.x;
+        this.position.y += this.velocity.y;
+    }
+}
+
+
+
 class Enemy {
     constructor() {
         this.velocity = {
@@ -106,6 +131,29 @@ class Enemy {
         }
     }
 
+    collidesWith(projectile) {
+        // Calculate the bounds of the enemy
+        if(this.sprite) {
+            const enemyLeft = {...this.position}.x;
+            const enemyRight = {...this.position}.x + this.width;
+            const enemyTop = {...this.position}.y;
+            const enemyBottom = {...this.position}.y + this.height;
+
+            // Calculate the bounds of the projectile
+            const projectileLeft = projectile.position.x;
+            const projectileRight = projectile.position.x + projectile.width;
+            const projectileTop = projectile.position.y;
+            const projectileBottom = projectile.position.y + projectile.height;
+
+            // Check for collision
+            if (enemyLeft < projectileRight && enemyRight > projectileLeft && enemyTop < projectileBottom && enemyBottom > projectileTop) {
+                return true; // Collision detected
+            }
+
+            return false; // No collision
+        }
+    }
+
     draw() {
         if(this.sprite) {
             ctx.drawImage(this.sprite, this.position.x, this.position.y, this.width, this.height);
@@ -121,30 +169,90 @@ class Enemy {
     }
 }
 
+class ProjectilesManager {
+    constructor() {
+        this.projectiles = [];
+    }
+    
+    addProjectile(projectile) {
+        this.projectiles.push(projectile);
+    }
+    
+    removeProjectile(projectile) {
+        const index = this.projectiles.indexOf(projectile);
+        if (index !== -1) {
+            this.projectiles.splice(index, 1);
+        }
+    }
+    
+    update() {
+        this.projectiles.forEach((projectile) => {
+            projectile.update();
+        });
+    }
+}
+
 class WaveManager {
     constructor() {
         this.currentWave = 1;
-        this.enemiesPerWave = 10;
+        this.enemiesPerWave = 5;
         this.enemySpeed = 1;
         this.spawnDelay = 1000; // milliseconds
         this.lastSpawnTime = 0;
         this.enemiesSpawned = 0;
         this.enemies = [];
+
+        this.projectilesManager = new ProjectilesManager();
     }
   
     update() {
-        // Check if it's time to spawn a new enemy
+        this.drawWaveCounter();
+        
+        //Check if it's time to spawn a new enemy
         const currentTime = Date.now();
         if (currentTime - this.lastSpawnTime >= this.spawnDelay && this.enemiesSpawned < this.enemiesPerWave) {
             this.spawnEnemy();
             this.lastSpawnTime = currentTime;
             this.enemiesSpawned++;
         }
-    
-        // Update and draw all the enemies
-        this.enemies.forEach((enemy) => {
+        
+        this.projectilesManager.update();
+
+        //Iterate over enemies to check for collision with the projectiles
+        for (let i = this.enemies.length - 1; i >= 0; i--) {
+            //Update and draw enemies
+            const enemy = this.enemies[i];
             enemy.update();
-        });
+
+            //Check if enemy has moved past the bottom of the screen
+            if({...enemy.position}.y > SCREEN_HEIGHT) {
+                this.enemies.splice(i, 1);
+            }
+    
+            //Iterate over active projectiles
+            for (let j = this.projectilesManager.projectiles.length - 1; j >= 0; j--) {
+                const projectile = this.projectilesManager.projectiles[j];
+    
+                //Check for collision between enemy and projectile
+                if (enemy.collidesWith(projectile)) {
+                    this.projectilesManager.removeProjectile(projectile); // Remove projectile
+                    this.enemies.splice(i, 1); // Remove enemy from the array
+                    break; // Break the loop as the enemy is removed
+                }
+
+                //Check if projectile went off screen
+                if(projectile.position.y + projectile.height <= 0) {
+                    this.projectilesManager.removeProjectile(projectile); // Remove projectile
+                }
+            }
+        }
+
+        if (this.enemies.length === 0 && this.enemiesSpawned === this.enemiesPerWave) {
+            this.enemiesSpawned = 0; // Reset enemiesSpawned counter
+            this.currentWave++; // Increase the wave counter
+            this.enemiesPerWave += 2; // Increase the number of enemies per wave
+            //this.spawnDelay -= 100; // Increase the spawn rate of enemies per wave
+        }
     }
     
     spawnEnemy() {
@@ -153,32 +261,21 @@ class WaveManager {
         enemy.velocity.y = this.enemySpeed;
         this.enemies.push(enemy);
     }
-}
 
-class Projectile {
-    constructor({position, velocity}) {
-        this.position = position;
-        this.velocity = velocity;
-        this.width = 4;
-        this.height = 20;
+    shootProjectile(projectile) {
+        this.projectilesManager.addProjectile(projectile);
     }
 
-    draw() {
-        ctx.fillStyle = `white`;
-        ctx.fillRect(this.position.x, this.position.y, this.width, this.height);
-    }
-
-    update() {
-        this.draw();
-        this.position.x += this.velocity.x;
-        this.position.y += this.velocity.y;
+    drawWaveCounter() {
+        ctx.font = '24px Arial';
+        ctx.fillStyle = 'white';
+        ctx.fillText(`Wave: ${this.currentWave}`, 10, 30);
     }
 }
 
 //Initialize Player
 const player = new Player();
-
-const projectiles = [];
+//Initialize WaveManager
 const waveManager = new WaveManager();
 
 //Key states
@@ -214,16 +311,6 @@ function gameLoop() {
         raindrop.update();
     }
 
-    projectiles.forEach((projectile, i) => {
-        //Garbage collection
-        if(projectile.position.y + projectile.height <= 0) {
-            projectiles.splice(i, 1);
-        }
-        else {
-            projectile.update();
-        }
-    });
-
     if(keys.left.pressed && lastKey === `left` && player.position.x >= 0) {
         player.velocity.x = -5;
     }
@@ -258,7 +345,7 @@ window.addEventListener(`keydown`, (e) => {
         case ` `:
             keys.shoot.pressed = true;
             //lastKey = `space`;
-            projectiles.push(new Projectile({
+            const projectile = new Projectile({
                 position: {
                     x: player.position.x + player.width / 2,
                     y: player.position.y
@@ -267,7 +354,8 @@ window.addEventListener(`keydown`, (e) => {
                     x: 0,
                     y: -5
                 }
-            }));
+            });
+            waveManager.shootProjectile(projectile);
             break;
     }
 });
