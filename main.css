@@ -6,6 +6,23 @@ body {
 }
 
 .canvas-container {
+    position: relative;
     display: flex;
     justify-content: center;
+}
+
+#text-container {
+    display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+}
+
+.text {
+    color: white;
+    margin: 10px;
 }

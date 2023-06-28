@@ -11,6 +11,12 @@ const SCREEN_HEIGHT = window.innerHeight;
 canvas.width = SCREEN_WIDTH;
 canvas.height = SCREEN_HEIGHT;
 
+let mouseControls = true;
+let keyboardControls = false;
+
+const moneyEl = document.getElementById(`money`);
+const waveEl = document.getElementById(`wave`);
+
 function getRandomInt(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
@@ -56,6 +62,11 @@ class Player {
             y: 0
         };
 
+        this.mousePos = {
+            x: 0,
+            y: 0
+        };
+
         const sprite = new Image();
         sprite.src = `./assets/bb11.png`;
 
@@ -78,10 +89,19 @@ class Player {
         }
     }
 
-    update() {
+    updateKeyboard() {
         if(this.sprite) {
             this.draw();
             this.position.x += this.velocity.x;
+            this.position.y += this.velocity.y;
+        }
+    }
+
+    updateMouse() {
+        if(this.sprite) {
+            this.draw();
+            this.position.x = this.mousePos.x;
+            this.position.y = this.mousePos.y;
         }
     }
 }
@@ -106,8 +126,6 @@ class Projectile {
     }
 }
 
-
-
 class Enemy {
     constructor() {
         this.velocity = {
@@ -125,7 +143,7 @@ class Enemy {
             this.height = sprite.height * scale;
 
             this.position = {
-                x: Math.random() * SCREEN_WIDTH,
+                x: Math.random() * (SCREEN_WIDTH - this.width),
                 y: -40
             };
         }
@@ -134,10 +152,10 @@ class Enemy {
     collidesWith(projectile) {
         // Calculate the bounds of the enemy
         if(this.sprite) {
-            const enemyLeft = {...this.position}.x;
-            const enemyRight = {...this.position}.x + this.width;
-            const enemyTop = {...this.position}.y;
-            const enemyBottom = {...this.position}.y + this.height;
+            const enemyLeft = this.position.x;
+            const enemyRight = this.position.x + this.width;
+            const enemyTop = this.position.y;
+            const enemyBottom = this.position.y + this.height;
 
             // Calculate the bounds of the projectile
             const projectileLeft = projectile.position.x;
@@ -201,12 +219,14 @@ class WaveManager {
         this.lastSpawnTime = 0;
         this.enemiesSpawned = 0;
         this.enemies = [];
+        this.money = 0;
 
         this.projectilesManager = new ProjectilesManager();
     }
   
     update() {
-        this.drawWaveCounter();
+        moneyEl.innerHTML = `$${this.money}`;
+        waveEl.innerHTML = `Wave: ${this.currentWave}`;
         
         //Check if it's time to spawn a new enemy
         const currentTime = Date.now();
@@ -237,10 +257,11 @@ class WaveManager {
                 if (enemy.collidesWith(projectile)) {
                     this.projectilesManager.removeProjectile(projectile); // Remove projectile
                     this.enemies.splice(i, 1); // Remove enemy from the array
+                    this.money += 10;
                     break; // Break the loop as the enemy is removed
                 }
 
-                //Check if projectile went off screen
+                //Check if projectile went off top of screen
                 if(projectile.position.y + projectile.height <= 0) {
                     this.projectilesManager.removeProjectile(projectile); // Remove projectile
                 }
@@ -256,7 +277,7 @@ class WaveManager {
     }
     
     spawnEnemy() {
-        // Create a new enemy and add it to the enemies array
+        //Create a new enemy and add it to the enemies array
         const enemy = new Enemy();
         enemy.velocity.y = this.enemySpeed;
         this.enemies.push(enemy);
@@ -264,12 +285,6 @@ class WaveManager {
 
     shootProjectile(projectile) {
         this.projectilesManager.addProjectile(projectile);
-    }
-
-    drawWaveCounter() {
-        ctx.font = '24px Arial';
-        ctx.fillStyle = 'white';
-        ctx.fillText(`Wave: ${this.currentWave}`, 10, 30);
     }
 }
 
@@ -311,17 +326,23 @@ function gameLoop() {
         raindrop.update();
     }
 
-    if(keys.left.pressed && lastKey === `left` && player.position.x >= 0) {
-        player.velocity.x = -5;
-    }
-    else if (keys.right.pressed && lastKey === `right` && player.position.x + player.width <= SCREEN_WIDTH) {
-        player.velocity.x = 5;
-    }
-    else {
-        player.velocity.x = 0;
+    if(keyboardControls) {
+        if(keys.left.pressed && lastKey === `left` && player.position.x >= 0) {
+            player.velocity.x = -5;
+        }
+        else if (keys.right.pressed && lastKey === `right` && player.position.x + player.width <= SCREEN_WIDTH) {
+            player.velocity.x = 5;
+        }
+        else {
+            player.velocity.x = 0;
+        }
+    
+        player.updateKeyboard();
     }
 
-    player.update();
+    if(mouseControls) {
+        player.updateMouse();
+    }
 
     waveManager.update();
     
@@ -329,8 +350,8 @@ function gameLoop() {
 }
 gameLoop();
 
-
-//Player inputs
+if(keyboardControls) {
+//keyboard inputs
 window.addEventListener(`keydown`, (e) => {
     e.preventDefault();
     switch(e.key) {
@@ -374,3 +395,44 @@ window.addEventListener(`keyup`, (e) => {
             break;
     }
 });
+}
+
+
+
+if(mouseControls) {
+//mouse inputs
+canvas.addEventListener(`mousemove`, (e) => {
+    const rect = canvas.getBoundingClientRect();
+    player.mousePos.x = e.clientX - rect.left;
+    player.mousePos.y = e.clientY - rect.top;
+});
+
+canvas.addEventListener(`mousedown`, (e) => {
+    e.preventDefault();
+    
+    switch(e.button) {
+        case 0:
+            keys.shoot.pressed = true;
+            const projectile = new Projectile({
+                position: {
+                    x: player.position.x + player.width / 2,
+                    y: player.position.y
+                },
+                velocity: {
+                    x: 0,
+                    y: -5
+                }
+            });
+            waveManager.shootProjectile(projectile);
+            break;
+    }
+});
+
+canvas.addEventListener(`mouseup`, (e) => {
+    switch(e.button) {
+        case 0:
+            keys.shoot.pressed = false;
+            break;
+    }
+});
+}
