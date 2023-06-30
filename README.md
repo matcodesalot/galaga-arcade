@@ -14,7 +14,7 @@ Keep up to date with this project by visiting the live page [here](https://matco
 
 ## About
 
-This is my interpretation of the classic arcade game [Galaga](https://en.wikipedia.org/wiki/Galaga) originally developed by Namco. 
+This is a vertical shoot 'em up game based in space. Each wave gets progressively more difficult.
 
 ## Technologies Used
 
@@ -22,11 +22,16 @@ This is my interpretation of the classic arcade game [Galaga](https://en.wikiped
 - CSS
 - JavaScript
 
-## Controls
+## Keyboard Controls
 
 - Arrow Left: move player left
 - Arrow Right: move player right
 - Space Bar: shoot
+
+## Mouse Controls
+
+- Mouse Movement: control player
+- Left Mouse Button: shoot
 
 ## Installation
 
@@ -36,4 +41,5 @@ This is my interpretation of the classic arcade game [Galaga](https://en.wikiped
 
 ## Credits
 
-This game was created by [matcodesalot](https://github.com/matcodesalot)
+- This game is programmed by [matcodesalot](https://github.com/matcodesalot).
+- The artwork used in this game was created by [Dylestorm](https://livingtheindie.com/). Specifically, the artwork is linked [here](https://livingtheindie.itch.io/pixel-shmup-ships-free).

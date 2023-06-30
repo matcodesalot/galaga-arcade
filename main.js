@@ -11,8 +11,8 @@ const SCREEN_HEIGHT = window.innerHeight;
 canvas.width = SCREEN_WIDTH;
 canvas.height = SCREEN_HEIGHT;
 
-let mouseControls = true;
-let keyboardControls = false;
+let mouseControls = false;
+let keyboardControls = true;
 
 const moneyEl = document.getElementById(`money`);
 const waveEl = document.getElementById(`wave`);
@@ -61,25 +61,105 @@ class Player {
             x: 0,
             y: 0
         };
-
-        this.mousePos = {
-            x: 0,
-            y: 0
+  
+        this.position = {
+            x: SCREEN_WIDTH / 2 - this.width / 2,
+            y: SCREEN_HEIGHT - this.height - 40
         };
+    
+        this.mousePos = {
+            x: SCREEN_WIDTH / 2 - 40,
+            y: SCREEN_HEIGHT / 2 + 200
+        };
+    
+        this.spriteURLs = [
+            "./assets/player_1.png",
+            "./assets/player_2.png",
+            "./assets/player_3.png"
+        ];
+    
+        this.spriteImages = [];
+        this.currentFrame = 0;
+        this.frameCount = this.spriteURLs.length;
+        this.loadImages(this.spriteURLs);
+        this.intervalId = null;
+        this.width = 0;
+        this.height = 0;
+    }
+    
+    loadImages(spriteURLs) {
+        let loadedCount = 0;
+
+            const loadImage = (url) => {
+            const image = new Image();
+            image.src = url;
+            image.onload = () => {
+                loadedCount++;
+                if (loadedCount === this.frameCount) {
+                    const scale = 1;
+                    this.width = image.width * scale; // Set the width of the player sprite based on the loaded image
+                    this.height = image.height * scale; // Set the height of the player sprite based on the loaded image
+                    this.position.x = SCREEN_WIDTH / 2 - this.width / 2; // Calculate the initial X position of the player
+                    this.position.y = SCREEN_HEIGHT - this.height - 40; // Calculate the initial Y position of the player
+                    this.startAnimation();
+                }
+            };
+            this.spriteImages.push(image);
+        };
+        
+        spriteURLs.forEach((url) => loadImage(url));
+    }
+    
+    updateFrame() {
+        this.currentFrame = (this.currentFrame + 1) % this.frameCount;
+    }
+    
+    draw() {
+        ctx.drawImage(this.spriteImages[this.currentFrame], this.position.x, this.position.y, this.width, this.height);
+    }
+    
+    startAnimation() {
+        this.intervalId = setInterval(() => {
+            this.updateFrame();
+        }, 80); // Adjust the interval duration for smoother animation
+    }
+    
+    stopAnimation() {
+        clearInterval(this.intervalId);
+        this.intervalId = null;
+    }
+    
+    updateKeyboard() {
+        //if (this.sprite) {
+            this.draw();
+            this.position.x += this.velocity.x;
+            this.position.y += this.velocity.y;
+        //}
+    }
+    
+    updateMouse() {
+        //if (this.sprite) {
+            this.draw();
+            this.position.x = this.mousePos.x;
+            this.position.y = this.mousePos.y;
+        //}
+    }
+}
+  
+
+class Projectile {
+    constructor({position, velocity, spriteSrc}) {
+        this.position = position;
+        this.velocity = velocity;
 
         const sprite = new Image();
-        sprite.src = `./assets/bb11.png`;
+        sprite.src = spriteSrc;
 
         sprite.onload = () => {
             const scale = 1;
             this.sprite = sprite;
             this.width = sprite.width * scale;
             this.height = sprite.height * scale;
-
-            this.position = {
-                x: SCREEN_WIDTH / 2 - this.width / 2,
-                y: SCREEN_HEIGHT - this.height - 40
-            };
         }
     }
 
@@ -89,40 +169,12 @@ class Player {
         }
     }
 
-    updateKeyboard() {
+    update() {
         if(this.sprite) {
             this.draw();
             this.position.x += this.velocity.x;
             this.position.y += this.velocity.y;
         }
-    }
-
-    updateMouse() {
-        if(this.sprite) {
-            this.draw();
-            this.position.x = this.mousePos.x;
-            this.position.y = this.mousePos.y;
-        }
-    }
-}
-
-class Projectile {
-    constructor({position, velocity}) {
-        this.position = position;
-        this.velocity = velocity;
-        this.width = 4;
-        this.height = 20;
-    }
-
-    draw() {
-        ctx.fillStyle = `white`;
-        ctx.fillRect(this.position.x, this.position.y, this.width, this.height);
-    }
-
-    update() {
-        this.draw();
-        this.position.x += this.velocity.x;
-        this.position.y += this.velocity.y;
     }
 }
 
@@ -134,7 +186,7 @@ class Enemy {
         };
 
         const sprite = new Image();
-        sprite.src = `./assets/invader.png`;
+        sprite.src = `./assets/enemy_1_1.png`;
 
         sprite.onload = () => {
             const scale = 1;
@@ -220,6 +272,8 @@ class WaveManager {
         this.enemiesSpawned = 0;
         this.enemies = [];
         this.money = 0;
+        this.isShooting = false;
+        this.shootTimer = null;
 
         this.projectilesManager = new ProjectilesManager();
     }
@@ -283,8 +337,38 @@ class WaveManager {
         this.enemies.push(enemy);
     }
 
-    shootProjectile(projectile) {
+    shootProjectile() {
+        const projectile = new Projectile({
+            position: {
+                x: player.position.x + player.width / 2,
+                y: player.position.y
+            },
+            velocity: {
+                x: 0,
+                y: -5
+            },
+            spriteSrc: `./assets/projectile_1.png`
+        });
+
         this.projectilesManager.addProjectile(projectile);
+    }
+
+    startShooting() {
+        if (!this.isShooting) {
+            this.isShooting = true;
+            this.shootProjectile();
+            this.shootTimer = setInterval(() => {
+                this.shootProjectile();
+            }, 200);
+        }
+    }
+
+    stopShooting() {
+        if (this.isShooting) {
+            this.isShooting = false;
+            clearInterval(this.shootTimer);
+            this.shootTimer = null;
+        }
     }
 }
 
@@ -313,10 +397,9 @@ for (let i = 0; i < 50; i++) {
 }
 
 function clearScreen() {
-    ctx.fillStyle = `black`;
+    ctx.fillStyle = `rgb(30, 4, 82)`;
     ctx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 }
-
 
 //Update and render game
 function gameLoop() {
@@ -366,17 +449,7 @@ window.addEventListener(`keydown`, (e) => {
         case ` `:
             keys.shoot.pressed = true;
             //lastKey = `space`;
-            const projectile = new Projectile({
-                position: {
-                    x: player.position.x + player.width / 2,
-                    y: player.position.y
-                },
-                velocity: {
-                    x: 0,
-                    y: -5
-                }
-            });
-            waveManager.shootProjectile(projectile);
+            waveManager.startShooting();
             break;
     }
 });
@@ -392,6 +465,7 @@ window.addEventListener(`keyup`, (e) => {
         case ` `:
             keys.shoot.pressed = false;
             //lastKey = `space`;
+            waveManager.stopShooting();
             break;
     }
 });
@@ -413,17 +487,7 @@ canvas.addEventListener(`mousedown`, (e) => {
     switch(e.button) {
         case 0:
             keys.shoot.pressed = true;
-            const projectile = new Projectile({
-                position: {
-                    x: player.position.x + player.width / 2,
-                    y: player.position.y
-                },
-                velocity: {
-                    x: 0,
-                    y: -5
-                }
-            });
-            waveManager.shootProjectile(projectile);
+            waveManager.startShooting();
             break;
     }
 });
@@ -432,7 +496,12 @@ canvas.addEventListener(`mouseup`, (e) => {
     switch(e.button) {
         case 0:
             keys.shoot.pressed = false;
+            waveManager.stopShooting();
             break;
     }
+});
+
+canvas.addEventListener(`mouseleave`, () => {
+    waveManager.stopShooting();
 });
 }

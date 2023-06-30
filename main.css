@@ -2,7 +2,7 @@ body {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    background-color: darkblue;
+    background-color: black;
 }
 
 .canvas-container {
@@ -13,13 +13,13 @@ body {
 
 #text-container {
     display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start;
-            position: absolute;
-            top: 0;
-            left: 50%;
-            transform: translateX(-50%);
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
 }
 
 .text {
