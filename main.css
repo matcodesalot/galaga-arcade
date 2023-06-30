@@ -23,6 +23,8 @@ body {
 }
 
 .text {
+    /* font-family: 'Orbitron', sans-serif; */
+    font-family: 'Press Start 2P', sans-serif;
     color: white;
     margin: 10px;
 }

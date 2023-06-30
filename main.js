@@ -2,9 +2,6 @@
 const canvas = document.getElementById(`canvas`);
 const ctx = canvas.getContext(`2d`);
 
-// const SCREEN_WIDTH = window.innerWidth;
-// const SCREEN_HEIGHT = window.innerHeight;
-
 const SCREEN_WIDTH = 960;
 const SCREEN_HEIGHT = window.innerHeight;
 

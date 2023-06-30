@@ -1,12 +1,6 @@
-# galaga-arcade
+# SHMUP
 
-## Table of Contents
-
-- [Live Page](#live-page)
-- [About](#about)
-- [Technologies Used](#technologies-used)
-- [Installation](#installation)
-- [Credits](#credits)
+[![My Skills](https://skillicons.dev/icons?i=js,html,css,vscode)](https://github.com/matcodesalot)
 
 ## Live Page
 
@@ -41,5 +35,5 @@ This is a vertical shoot 'em up game based in space. Each wave gets progressivel
 
 ## Credits
 
-- This game is programmed by [matcodesalot](https://github.com/matcodesalot).
-- The artwork used in this game was created by [Dylestorm](https://livingtheindie.com/). Specifically, the artwork is linked [here](https://livingtheindie.itch.io/pixel-shmup-ships-free).
+- This game was programmed by [matcodesalot](https://github.com/matcodesalot).
+- The artwork was created by [Dylestorm](https://livingtheindie.com/). Specifically, the artwork used in this project is linked [here](https://livingtheindie.itch.io/pixel-shmup-ships-free).
