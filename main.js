@@ -11,8 +11,8 @@ const SCREEN_HEIGHT = window.innerHeight;
 canvas.width = SCREEN_WIDTH;
 canvas.height = SCREEN_HEIGHT;
 
-let mouseControls = false;
-let keyboardControls = true;
+let mouseControls = true;
+let keyboardControls = false;
 
 const moneyEl = document.getElementById(`money`);
 const waveEl = document.getElementById(`wave`);
